@@ -30,7 +30,7 @@ import (
 
 // Global variables
 var programName string = "check_bareos_jobs"
-var version string = "0.0.1"
+var version string = "0.1.0"
 var exitCode int = 0
 var dbType string
 var dbHostname string
