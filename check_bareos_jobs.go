@@ -26,6 +26,7 @@ import (
   "strconv"
   "database/sql"
   _ "github.com/go-sql-driver/mysql"
+  _ "github.com/lib/pq"
 )
 
 // Global variables
@@ -103,9 +104,10 @@ func showVersion() {
 
 func queryJobStatusList(databaseType string) *sql.Rows {
   var results *sql.Rows
-  var query string = "SELECT job.JobId, job.Name, job.JobStatus, status.JobStatusLong, status.Severity FROM Job job INNER JOIN Status status ON status.JobStatus = job.JobStatus WHERE EndTime BETWEEN DATE_SUB(NOW(), INTERVAL 25 HOUR) AND NOW() AND job.JobId IN (SELECT MAX(JobId) FROM Job WHERE Name = job.Name) ORDER BY status.Severity DESC"
+  var query string
   switch databaseType {
     case "mysql", "MySQL":
+      query = "SELECT job.JobId, job.Name, job.JobStatus, status.JobStatusLong, status.Severity FROM Job job INNER JOIN Status status ON status.JobStatus = job.JobStatus WHERE EndTime BETWEEN DATE_SUB(NOW(), INTERVAL 25 HOUR) AND NOW() AND job.JobId IN (SELECT MAX(JobId) FROM Job j WHERE j.Name = job.Name) ORDER BY status.Severity DESC"
       db, err := sql.Open("mysql", dbUser+":"+dbPassword+"@tcp("+dbHostname+":"+dbPort+")/"+dbName)
 
       if err != nil {
@@ -126,7 +128,25 @@ func queryJobStatusList(databaseType string) *sql.Rows {
         abort("Could not query sql: "+queryError.Error(), 12)
       }
     case "postgres", "PostgreSQL", "postgresql":
-      abort("PostgreSQL not supported", 200)
+      query = "SELECT job.jobid, job.name, job.jobstatus, status.jobstatuslong, status.severity FROM job INNER JOIN status ON status.jobstatus = job.jobstatus WHERE (endtime BETWEEN NOW() - (INTERVAL '25 HOUR') AND NOW()::timestamp) AND job.jobid IN (SELECT MAX(jobid) FROM job j WHERE j.name = job.name) ORDER BY status.severity DESC"
+      db, err := sql.Open("postgres", "postgres://"+dbUser+":"+dbPassword+"@"+dbHostname+":"+dbPort+"/"+dbName)
+
+      if err != nil {
+        abort("Could not connect to database: "+err.Error(), 11)
+      }
+      db.SetConnMaxLifetime(time.Minute * 3)
+      db.SetMaxOpenConns(1)
+      db.SetMaxIdleConns(1)
+      
+      defer db.Close()
+      
+      // Query job information of the last 25 hours
+      var queryError error
+      results, queryError = db.Query(query)
+      
+      if queryError != nil {
+        abort("Could not query sql: "+queryError.Error(), 12)
+      }
     default:
       abort("Database type unknown", 10)
   }
