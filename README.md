@@ -16,7 +16,7 @@ Check help for all options
 ```
 check_bareos_jobs -h
 
-check_bareos_jobs  Copyright (C) 2020  Armin Bube
+check_bareos_jobs  Copyright (C) 2021  Armin Bube
 This program comes with ABSOLUTELY NO WARRANTY; for details use flag -license.
 This is free software, and you are welcome to redistribute it
 under certain conditions; for details use flag -license.
@@ -33,6 +33,8 @@ Usage of bin/check_bareos_jobs:
     	Bareos Database Password (default "bareos")
   -port string
     	Bareos Database Port (default "3306")
+  -sslmode string
+    	SSL mode for PostgreSQL database connections (default "require")
   -type string
     	Bareos Database Type (default "mysql")
   -user string
@@ -49,4 +51,4 @@ check_bareos_jobs -host localhost -database bareos -user bareos_ro -password sec
 
 ## Author
 
-Armin Bube
+[Armin Bube](https://bubebyte.de)
