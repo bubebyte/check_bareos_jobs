@@ -1,6 +1,6 @@
 /*
   check_bareos_jobs - Checks the last status of bareos jobs within a defined time period
-  Copyright (C) 2020  Armin Bube
+  Copyright (C) 2021  Armin Bube
 
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@ import (
 
 // Global variables
 var programName string = "check_bareos_jobs"
-var version string = "0.1.0"
+var version string = "0.2.0"
 var exitCode int = 0
 var dbType string
 var dbHostname string
