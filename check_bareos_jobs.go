@@ -31,7 +31,7 @@ import (
 
 // Global variables
 var programName string = "check_bareos_jobs"
-var version string = "0.2.0"
+var version string = "0.2.1"
 var exitCode int = 0
 var dbType string
 var dbHostname string
@@ -39,6 +39,7 @@ var dbPort string
 var dbName string
 var dbUser string
 var dbPassword string
+var dbSslmode string
 var licenseFlag bool
 var versionFlag bool
 
@@ -58,12 +59,13 @@ func defineParameter() {
   flag.StringVar(&dbName, "database", "bareos", "Bareos Database Name")
   flag.StringVar(&dbUser, "user", "bareos", "Bareos Database Username")
   flag.StringVar(&dbPassword, "password", "bareos", "Bareos Database Password")
+  flag.StringVar(&dbSslmode, "sslmode", "require", "SSL mode for PostgreSQL database connections")
   flag.BoolVar(&licenseFlag, "license", false, "Displays license information and quits")
   flag.BoolVar(&versionFlag, "version", false, "Displays version information and quits")
 
   flag.Usage = func() {
     fmt.Fprintf(os.Stderr, `
-check_bareos_jobs  Copyright (C) 2020  Armin Bube
+check_bareos_jobs  Copyright (C) 2021  Armin Bube
 This program comes with ABSOLUTELY NO WARRANTY; for details use flag -license.
 This is free software, and you are welcome to redistribute it
 under certain conditions; for details use flag -license.
@@ -129,7 +131,7 @@ func queryJobStatusList(databaseType string) *sql.Rows {
       }
     case "postgres", "PostgreSQL", "postgresql":
       query = "SELECT job.jobid, job.name, job.jobstatus, status.jobstatuslong, status.severity FROM job INNER JOIN status ON status.jobstatus = job.jobstatus WHERE (endtime BETWEEN NOW() - (INTERVAL '25 HOUR') AND NOW()::timestamp) AND job.jobid IN (SELECT MAX(jobid) FROM job j WHERE j.name = job.name) ORDER BY status.severity DESC"
-      db, err := sql.Open("postgres", "postgres://"+dbUser+":"+dbPassword+"@"+dbHostname+":"+dbPort+"/"+dbName)
+      db, err := sql.Open("postgres", "postgres://"+dbUser+":"+dbPassword+"@"+dbHostname+":"+dbPort+"/"+dbName+"?sslmode="+dbSslmode)
 
       if err != nil {
         abort("Could not connect to database: "+err.Error(), 11)
